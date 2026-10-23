@@ -41,7 +41,7 @@ def chunk_text(text, title, url):
     a commission answer never arrives glued to a refund answer.
     """
     chunks = []
-    for segment in re.split(r"\n(?=\d{1,2}\.\s)", text):
+    for segment in re.split(r"\n\s*(?=\d{1,2}\.\s)", text):
         chunks.extend(_pack(segment, title, url))
     return chunks
 

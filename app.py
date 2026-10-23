@@ -105,7 +105,13 @@ def norm(s):
 
 
 def tokens(s):
-    return [t for t in norm(s).split() if len(t) > 2 and t not in STOP]
+    out = []
+    for t in norm(s).split():
+        if len(t) > 3 and t.endswith("s"):
+            t = t[:-1]  # naive plural stem: refunds->refund, offers->offer
+        if len(t) > 2 and t not in STOP:
+            out.append(t)
+    return out
 
 
 def wants_human(text, lang):
@@ -145,11 +151,12 @@ def retrieve(query_en):
             continue
         score = sum(2 if t in tokens(ch["title"]) else 1 for t in qt if t in ct or t in tokens(ch["title"]))
         if "/faq/" in ch["url"]:
-            score = int(score * 1.5)
+            score = int(score * 2)
         if score > best_score:
             best, best_score = ch, score
-    # require a meaningful overlap: at least 2 query tokens or 40% of them
-    need = max(2, int(len(qt) * 0.4))
+    # require a meaningful overlap: 40% of query tokens (short 1-2 token
+    # questions pass with a single solid hit, e.g. "refunds" or "offers")
+    need = 1 if len(qt) <= 2 else max(2, int(len(qt) * 0.4))
     return best if best_score >= need else None
 
 
