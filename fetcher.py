@@ -34,7 +34,19 @@ def clean_text(raw_html):
 
 
 def chunk_text(text, title, url):
-    """Split page text into retrievable chunks of ~120-900 chars."""
+    """Split page text into retrievable chunks of ~120-900 chars.
+
+    Numbered-question boundaries (FAQ pages: "7. How do I pay...") are
+    hard split points first, so each Q&A is its own retrievable unit and
+    a commission answer never arrives glued to a refund answer.
+    """
+    chunks = []
+    for segment in re.split(r"\n(?=\d{1,2}\.\s)", text):
+        chunks.extend(_pack(segment, title, url))
+    return chunks
+
+
+def _pack(text, title, url):
     chunks, buf = [], ""
     for para in re.split(r"\n\s*\n|\n", text):
         para = para.strip()
